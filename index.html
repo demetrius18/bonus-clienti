@@ -1,117 +1,172 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bonus Clienti WhatsApp</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invia Bonus Clienti</title>
   <style>
+    :root {
+      --primary: #25D366;
+      --background: #f0f2f5;
+      --card: #fff;
+      --border: #ddd;
+      --text: #333;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 20px;
-      background: #f7f7f7;
-      color: #333;
+      margin: 0;
+      padding: 0;
+      background: var(--background);
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      min-height: 100vh;
     }
-    h1 {
-      text-align: center;
-      font-size: 24px;
-    }
-    .box {
-      background: white;
-      padding: 15px;
-      margin-bottom: 20px;
+
+    .container {
+      background: var(--card);
+      padding: 24px;
+      margin-top: 40px;
       border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      width: 95%;
+      max-width: 450px;
     }
-    input, textarea, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+
+    h2 {
+      text-align: center;
+      color: #075e54;
+      margin-bottom: 20px;
     }
-    button {
-      background-color: #25d366;
-      color: white;
-      border: none;
-      margin-top: 12px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #1da851;
-    }
+
     label {
+      display: block;
+      margin-top: 16px;
       font-weight: 600;
+      color: var(--text);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      background: #fff;
+    }
+
+    textarea {
+      resize: none;
+      background: #f8f8f8;
+      height: 100px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 25px;
+      padding: 14px;
+      background-color: var(--primary);
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #1ebe5c;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Invio Bonus Clienti</h2>
 
-  <h1>Invia Bonus Clienti</h1>
-
-  <!-- Modalità 1: Singolo cliente -->
-  <div class="box">
-    <h2>💳 Inserimento Singolo</h2>
-    <label for="tipo">Tipo:</label>
-    <select id="tipo">
-      <option value="Goldbet">Goldbet</option>
-      <option value="Betflag">Betflag</option>
+    <label for="bookmaker">Bookmaker</label>
+    <select id="bookmaker">
+      <option value="goldbet">Goldbet</option>
+      <option value="betflag">Betflag</option>
     </select>
 
-    <label for="id">ID / Username:</label>
-    <input type="text" id="id" placeholder="123456 / username" />
+    <!-- GOLD BET -->
+    <div id="goldbetFields">
+      <label for="goldbet_id">ID</label>
+      <input type="text" id="goldbet_id" placeholder="Es: 123456">
+      <label for="goldbet_username">Username</label>
+      <input type="text" id="goldbet_username" placeholder="Es: mario88">
+      <label for="goldbet_importo">Importo (€)</label>
+      <input type="number" id="goldbet_importo" placeholder="Es: 50">
+    </div>
 
-    <label for="importo">Importo:</label>
-    <input type="text" id="importo" placeholder="€100" />
+    <!-- BETFLAG -->
+    <div id="betflagFields" class="hidden">
+      <label for="betflag_username">Username</label>
+      <input type="text" id="betflag_username" placeholder="Es: lorenzo_bet">
+      <label for="betflag_importo">Importo (€)</label>
+      <input type="number" id="betflag_importo" placeholder="Es: 30">
+    </div>
 
-    <button onclick="inviaSingolo()">Invia Singolo</button>
-  </div>
+    <button onclick="generaMessaggio()">📲 Invia su WhatsApp</button>
 
-  <!-- Modalità 2: Messaggi multipli -->
-  <div class="box">
-    <h2>📋 Messaggi Multipli</h2>
-    <label for="multi">Inserisci uno o più messaggi (uno per riga):</label>
-    <textarea id="multi" rows="6" placeholder="Goldbet - ID: 123456 - Mario - €100&#10;Betflag - USER: betmario88 - €50"></textarea>
-    <button onclick="inviaMultiplo()">Invia Tutto</button>
+    <textarea id="messaggio" readonly placeholder="Messaggio generato..."></textarea>
   </div>
 
   <script>
-    const numeroWhatsApp = '393891941328'; // ← Inserisci qui il numero con prefisso internazionale (senza +)
+    const bookmakerSelect = document.getElementById('bookmaker');
+    const goldbetFields = document.getElementById('goldbetFields');
+    const betflagFields = document.getElementById('betflagFields');
 
-    function inviaSingolo() {
-      const tipo = document.getElementById('tipo').value;
-      const id = document.getElementById('id').value.trim();
-      const importo = document.getElementById('importo').value.trim();
+    bookmakerSelect.addEventListener('change', () => {
+      const val = bookmakerSelect.value;
+      goldbetFields.classList.toggle('hidden', val !== 'goldbet');
+      betflagFields.classList.toggle('hidden', val !== 'betflag');
+    });
 
-      if (!id || !importo) {
-        alert('Inserisci tutti i campi.');
-        return;
-      }
+    function generaMessaggio() {
+      const bookmaker = bookmakerSelect.value;
+      let testo = '';
 
-      let messaggio = '';
-      if (tipo === 'Goldbet') {
-        messaggio = `Goldbet - ID: ${id} - Importo: ${importo}`;
+      if (bookmaker === 'goldbet') {
+        const id = document.getElementById('goldbet_id').value.trim();
+        const username = document.getElementById('goldbet_username').value.trim();
+        const importo = document.getElementById('goldbet_importo').value.trim();
+
+        if (!id || !username || !importo) {
+          alert('Compila tutti i campi per Goldbet!');
+          return;
+        }
+
+        testo = `🟡 *BONUS GOLD BET*\nID: ${id}\nUsername: ${username}\nRicarica: €${importo}`;
       } else {
-        messaggio = `Betflag - USERNAME: ${id} - Importo: ${importo}`;
+        const username = document.getElementById('betflag_username').value.trim();
+        const importo = document.getElementById('betflag_importo').value.trim();
+
+        if (!username || !importo) {
+          alert('Compila tutti i campi per Betflag!');
+          return;
+        }
+
+        testo = `🔵 *BONUS BETFLAG*\nUsername: ${username}\nRicarica: €${importo}`;
       }
 
-      apriWhatsApp(messaggio);
-    }
+      document.getElementById('messaggio').value = testo;
 
-    function inviaMultiplo() {
-      const contenuto = document.getElementById('multi').value.trim();
-      if (!contenuto) {
-        alert('Inserisci almeno un messaggio.');
-        return;
-      }
-      apriWhatsApp(contenuto);
-    }
-
-    function apriWhatsApp(messaggio) {
-      const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(messaggio)}`;
-      window.open(url, '_blank');
+      const numero = '393474115150'; // ← Inserisci il numero WhatsApp del referente
+      const link = `https://wa.me/${numero}?text=${encodeURIComponent(testo)}`;
+      window.open(link, '_blank');
     }
   </script>
-
 </body>
 </html>
